@@ -1,26 +1,36 @@
-FROM python:3
+# Use a stable Python 3.11 slim image
+FROM python:3.11-slim
 
+# Set working directory
 WORKDIR /data
 
-# Install distutils (needed for Django 3.2)
+# Install system dependencies required for Django and Python packages
 RUN apt-get update && \
-    apt-get install -y python3-distutils && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+        python3-distutils \
+        gcc \
+        libpq-dev \
+        curl \
+        && rm -rf /var/lib/apt/lists/*
 
-# Install Django
+# Upgrade pip
+RUN python -m ensurepip && pip install --no-cache-dir --upgrade pip
+
+# Install Django 3.2
 RUN pip install --no-cache-dir django==3.2
 
 # Copy project files
 COPY . .
 
-# Run migrations
+# Run Django migrations
 RUN python manage.py migrate
 
-# Expose port
+# Expose port 8000
 EXPOSE 8000
 
-# Start the server
+# Start Django development server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
 
 
 
